@@ -47,16 +47,20 @@ npm run build    # writes static site to ./out
 npm start        # serves ./out locally
 ```
 
-## Deploy on Render (static)
+## Deploy on Render
 
-[`render.yaml`](./render.yaml) publishes `./out` as a **static** site:
-
-1. Push to GitHub  
-2. Render → **Blueprints** → New Blueprint Instance  
-3. Apply (`restaurant-pos` static service)
+[`render.yaml`](./render.yaml) builds the static export to `./out`, then serves those files (still **no database**).
 
 Build: `npm install --include=dev && npm run build`  
-Publish directory: `./out`
+Start: `serve out` on Render’s `$PORT` (not a hardcoded 3000)
+
+If an older service was created as Next.js/`next start`, sync the Blueprint or set **Start Command** to:
+
+```bash
+npx --yes serve@14 out -l tcp://0.0.0.0:$PORT
+```
+
+Optional pure CDN path: Dashboard → **New → Static Site**, build same as above, **Publish Directory** `out`.
 
 ## Module map
 

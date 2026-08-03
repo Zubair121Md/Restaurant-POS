@@ -1,21 +1,23 @@
-# Render Blueprint — static test site (no database / no Node server)
+# Render Blueprint — static test site (no database)
 # Restaurant POS by MIA Solutions Pvt. Ltd.
-# Docs: https://render.com/docs/static-sites
 #
-# Browser localStorage only — Spice Garden demo data, not a production DB.
+# Serves the Next.js static export from ./out (browser localStorage only).
+# Uses a lightweight static file server bound to Render's $PORT.
 
 services:
   - type: web
     name: restaurant-pos
-    runtime: static
+    runtime: node
     plan: free
     region: singapore
     branch: main
     autoDeployTrigger: commit
     buildCommand: NPM_CONFIG_PRODUCTION=false npm install --include=dev && npm run build
-    staticPublishPath: ./out
+    startCommand: npx --yes serve@14 out -l tcp://0.0.0.0:$PORT
     envVars:
       - key: NODE_VERSION
         value: "22.12.0"
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
+      - key: NODE_ENV
+        value: production
