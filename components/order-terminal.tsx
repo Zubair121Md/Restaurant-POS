@@ -3,45 +3,41 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { PrimaryButton, SecondaryButton } from "@/components/ui";
+import { useBranchData } from "@/components/app-provider";
+import { Field, PrimaryButton, SecondaryButton, TextInput } from "@/components/ui";
 import {
+  applyDiscount,
   createId,
   formatMoney,
-  getOrder,
-  loadStore,
   orderSubtotal,
   orderTotal,
+  patchOrder,
   payOrder,
+  sendKot,
   setOrderStatus,
+  splitBill,
   updateOrderItems
 } from "@/lib/store";
-import type { MenuItem, Order, OrderItem, PosStore } from "@/lib/types";
+import type { MenuItem, OrderItem, Payment } from "@/lib/types";
 
 export function OrderTerminal({ orderId }: { orderId: string }) {
   const router = useRouter();
-  const [store, setStore] = useState<PosStore | null>(null);
-  const [order, setOrder] = useState<Order | null>(null);
+  const { store, orders, categories, menu, customers, refresh } = useBranchData();
+  const order = orders.find((entry) => entry.id === orderId) ?? store?.orders.find((entry) => entry.id === orderId) ?? null;
   const [categoryId, setCategoryId] = useState<string>("");
   const [tip, setTip] = useState(0);
+  const [discount, setDiscount] = useState("");
+  const [discountReason, setDiscountReason] = useState("");
+  const [priority, setPriority] = useState<"normal" | "rush" | "vip">("normal");
+  const [splitIds, setSplitIds] = useState<string[]>([]);
+  const [message, setMessage] = useState("");
 
-  function refresh() {
-    const nextStore = loadStore();
-    setStore(nextStore);
-    const nextOrder = getOrder(orderId);
-    setOrder(nextOrder);
-    if (nextStore && !categoryId) {
-      setCategoryId(nextStore.categories[0]?.id ?? "");
-    }
-  }
-
-  useEffect(() => {
-    refresh();
-  }, [orderId]);
+  useEffect(() => { if (!categoryId) setCategoryId(categories[0]?.id ?? ""); }, [categories, categoryId]);
+  useEffect(() => { if (order) { setTip(order.tip); setPriority(order.kotPriority); } }, [order]);
 
   const visibleMenu = useMemo(() => {
-    if (!store) return [];
-    return store.menu.filter((item) => item.available && (!categoryId || item.categoryId === categoryId));
-  }, [store, categoryId]);
+    return menu.filter((item) => item.available && item.isActive && (!categoryId || item.categoryId === categoryId));
+  }, [menu, categoryId]);
 
   function persistItems(items: OrderItem[]) {
     updateOrderItems(orderId, items);
@@ -66,7 +62,8 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
         menuItemId: menuItem.id,
         name: menuItem.name,
         price: menuItem.price,
-        qty: 1
+        qty: 1,
+        station: menuItem.station
       }
     ]);
   }
@@ -84,19 +81,44 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
     persistItems(order.items.filter((item) => item.id !== lineId));
   }
 
+  function updateNotes(lineId: string, notes: string) {
+    if (!order) return;
+    persistItems(order.items.map((item) => item.id === lineId ? { ...item, notes } : item));
+  }
+
   function sendToKitchen() {
-    setOrderStatus(orderId, "preparing");
+    sendKot(orderId, priority);
+    setMessage(priority === "normal" ? "KOT sent to kitchen." : `${priority.toUpperCase()} KOT sent.`);
     refresh();
   }
 
-  function markReady() {
-    setOrderStatus(orderId, "ready");
-    refresh();
-  }
-
-  function checkout(method: "cash" | "card" | "qr") {
+  function checkout(method: Payment["method"]) {
     payOrder(orderId, method, tip);
+    setMessage("Payment complete. Recipe inventory was deducted and the sale was posted to the ledger.");
     refresh();
+  }
+
+  function applyOrderDiscount() {
+    try {
+      applyDiscount(orderId, Number(discount) || 0, discountReason.trim() || "Manager discount");
+      setMessage("Discount applied.");
+      refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not apply discount.");
+    }
+  }
+
+  function createSplit() {
+    if (!order || !splitIds.length || splitIds.length === order.items.length) return;
+    const result = splitBill(order.id, [
+      order.items.filter((item) => !splitIds.includes(item.id)),
+      order.items.filter((item) => splitIds.includes(item.id))
+    ]);
+    if (result) {
+      setSplitIds([]);
+      setMessage(`Split created as ${result.orders[1].orderNumber}.`);
+      refresh();
+    }
   }
 
   if (!store || !order) {
@@ -116,7 +138,7 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
             {order.tableLabel || "Walk-in"}
           </h2>
           <p className="mt-2 text-slate-600">
-            {order.id.slice(-8).toUpperCase()} · <span className="capitalize">{order.status}</span>
+            {order.orderNumber} · {order.type.replace("_", " ")} · <span className="capitalize">{order.status}</span>
           </p>
         </div>
         <SecondaryButton onClick={() => router.push("/orders")}>All orders</SecondaryButton>
@@ -125,7 +147,7 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
       <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
         <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-soft sm:p-6">
           <div className="mb-4 flex flex-wrap gap-2">
-            {store.categories.map((category) => (
+            {categories.map((category) => (
               <button
                 key={category.id}
                 type="button"
@@ -149,7 +171,7 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
               >
                 <p className="font-semibold">{item.name}</p>
                 <p className="mt-1 line-clamp-2 text-sm text-slate-500">{item.description}</p>
-                <p className="mt-3 text-sm font-bold text-accent">{formatMoney(item.price, store.settings.currency)}</p>
+                <div className="mt-3 flex items-center justify-between"><p className="text-sm font-bold text-accent">{formatMoney(item.price, store.settings.currency)}</p><span className="text-xs capitalize text-slate-400">{item.station}</span></div>
               </button>
             ))}
           </div>
@@ -164,11 +186,12 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
               order.items.map((item) => (
                 <div key={item.id} className="rounded-2xl bg-slate-50 p-3">
                   <div className="flex items-start justify-between gap-3">
-                    <div>
+                    <div className="flex min-w-0 gap-2">
+                      {!locked && order.items.length > 1 ? <input type="checkbox" aria-label={`Move ${item.name} to split bill`} checked={splitIds.includes(item.id)} onChange={(event) => setSplitIds((ids) => event.target.checked ? [...ids, item.id] : ids.filter((id) => id !== item.id))} /> : null}
+                      <div>
                       <p className="font-semibold">{item.name}</p>
-                      <p className="text-sm text-slate-500">
-                        {formatMoney(item.price, store.settings.currency)} each
-                      </p>
+                      <p className="text-sm text-slate-500">{formatMoney(item.price, store.settings.currency)} each · <span className="capitalize">{item.station ?? "general"}</span></p>
+                      </div>
                     </div>
                     {!locked ? (
                       <button type="button" onClick={() => removeLine(item.id)} className="text-slate-400 hover:text-danger">
@@ -200,17 +223,38 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
                       {formatMoney(item.price * item.qty, store.settings.currency)}
                     </p>
                   </div>
+                  {!locked ? <input value={item.notes ?? ""} onChange={(event) => updateNotes(item.id, event.target.value)} placeholder="Kitchen note (optional)" className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-accent" /> : item.notes ? <p className="mt-2 text-xs italic text-slate-500">{item.notes}</p> : null}
                 </div>
               ))
             )}
           </div>
 
+          {!locked ? (
+            <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200 p-4">
+              <Field label="Customer">
+                <select value={order.customerId ?? ""} onChange={(event) => { patchOrder(orderId, { customerId: event.target.value || undefined }); refresh(); }} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium outline-none focus:border-accent">
+                  <option value="">Guest / no customer</option>
+                  {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} · {customer.phone}</option>)}
+                </select>
+              </Field>
+              <div className="grid grid-cols-[1fr_1.4fr_auto] gap-2">
+                <TextInput type="number" value={discount} onChange={setDiscount} placeholder="Discount" />
+                <TextInput value={discountReason} onChange={setDiscountReason} placeholder="Reason" />
+                <SecondaryButton onClick={applyOrderDiscount}>Apply</SecondaryButton>
+              </div>
+              {splitIds.length ? <SecondaryButton onClick={createSplit}>Move {splitIds.length} line(s) to new bill</SecondaryButton> : null}
+            </div>
+          ) : null}
+
           <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-sm">
             <Row label="Subtotal" value={formatMoney(subtotal, store.settings.currency)} />
+            {order.discount > 0 ? <Row label={`Discount${order.discountReason ? ` · ${order.discountReason}` : ""}`} value={`−${formatMoney(order.discount, store.settings.currency)}`} /> : null}
             <Row
               label={`Tax (${Math.round(order.taxRate * 100)}%)`}
               value={formatMoney(Math.max(0, subtotal - order.discount) * order.taxRate, store.settings.currency)}
             />
+            {store.settings.gstEnabled ? <Row label={`GST (${(store.settings.gstRate * 100).toFixed(1)}%)`} value={formatMoney(order.gstAmount ?? 0, store.settings.currency)} /> : null}
+            {store.settings.serviceChargeRate > 0 ? <Row label={`Service (${(store.settings.serviceChargeRate * 100).toFixed(1)}%)`} value={formatMoney(order.serviceCharge ?? 0, store.settings.currency)} /> : null}
             {store.settings.tipEnabled && !locked ? (
               <div className="flex items-center justify-between gap-3 py-1">
                 <span className="text-slate-500">Tip</span>
@@ -234,23 +278,31 @@ export function OrderTerminal({ orderId }: { orderId: string }) {
 
           {!locked ? (
             <div className="mt-5 grid gap-2">
+              <div className="grid grid-cols-3 gap-2">
+                {(["normal", "rush", "vip"] as const).map((value) => <button key={value} type="button" onClick={() => setPriority(value)} className={`rounded-xl px-3 py-2 text-xs font-bold uppercase ${priority === value ? "bg-accent text-white" : "bg-slate-100 text-slate-600"}`}>{value}</button>)}
+              </div>
               <PrimaryButton onClick={sendToKitchen} disabled={order.items.length === 0}>
-                Send to kitchen
+                Send KOT
               </PrimaryButton>
-              <SecondaryButton onClick={markReady} disabled={order.items.length === 0}>
-                Mark ready
-              </SecondaryButton>
-              <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="grid grid-cols-3 gap-2">
+                <SecondaryButton onClick={() => { setOrderStatus(orderId, "preparing"); refresh(); }} disabled={order.items.length === 0}>Preparing</SecondaryButton>
+                <SecondaryButton onClick={() => { setOrderStatus(orderId, "ready"); refresh(); }} disabled={order.items.length === 0}>Ready</SecondaryButton>
+                <SecondaryButton onClick={() => { setOrderStatus(orderId, "served"); refresh(); }} disabled={order.items.length === 0}>Served</SecondaryButton>
+              </div>
+              <p className="pt-2 text-xs font-bold uppercase tracking-wider text-slate-400">Collect payment</p>
+              <div className="grid grid-cols-4 gap-2">
                 <SecondaryButton onClick={() => checkout("cash")}>Cash</SecondaryButton>
                 <SecondaryButton onClick={() => checkout("card")}>Card</SecondaryButton>
+                <SecondaryButton onClick={() => checkout("upi")}>UPI</SecondaryButton>
                 <SecondaryButton onClick={() => checkout("qr")}>QR</SecondaryButton>
               </div>
             </div>
           ) : (
             <p className="mt-5 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
-              Paid via {order.paymentMethod || "checkout"}
+              Payment successful via {order.paymentMethod || order.payments[0]?.method || "checkout"}. Inventory ingredients were deducted automatically.
             </p>
           )}
+          {message ? <p className="mt-3 rounded-xl bg-accentSoft px-4 py-3 text-sm font-medium text-accent">{message}</p> : null}
         </section>
       </div>
     </div>

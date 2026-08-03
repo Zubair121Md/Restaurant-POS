@@ -2,7 +2,7 @@
   "name": "restaurant-pos",
   "version": "1.0.0",
   "private": true,
-  "description": "Full-featured Restaurant Point of Sale system built with Next.js",
+  "description": "Connected restaurant OS — POS, KDS, tables, inventory, recipes, CRM, staff, accounting, and multi-branch control",
   "author": "Zubair121Md",
   "license": "MIT",
   "repository": {

@@ -1,29 +1,37 @@
 # Restaurant POS
 
-Full-featured restaurant point of sale built with Next.js 15, React 19, TypeScript, and Tailwind CSS.
+Connected restaurant operating system for billing, kitchen, floor, inventory, recipes, staff, CRM, accounting, and multi-branch control.
 
-Manage floor tables, take orders, run the kitchen board, edit your menu, and check out guests — all from one workspace.
+Built to cover the same problem space as Petpooja, Restroworks, Toast POS, and ERPNext — with a simpler UI, stronger inventory/recipe costing, and a real-time owner dashboard.
 
-## Features
+## What it solves
 
-- Guided first-time setup (language, venue, admin, data provider)
-- Sign-in gate for the POS workspace
-- Dashboard with revenue, open tickets, and table occupancy
-- Floor map with available / occupied / billing tables
-- Order terminal with menu categories, tips, tax, and cash/card/QR checkout
-- Menu manager with availability toggles
-- Live kitchen board with prep status updates
-- Local-first storage (works without cloud keys)
-- Optional Supabase or Firebase provider hooks
+| Area | Capabilities |
+| --- | --- |
+| **POS & billing** | Touch order terminal, discounts with reason, split/merge bills, GST/service charge, multi-tender (cash/card/UPI/QR), offline-friendly local mode |
+| **Kitchen** | Live KDS, station routing, prep timers, rush/VIP priority, delay highlighting |
+| **Tables** | Live floor status, reservations, waitlist seating, turnover-aware table flow |
+| **Inventory** | Raw stock, reorder/expiry alerts, wastage, adjustments, recipe-based deduction on payment |
+| **Recipes & costing** | Recipe builder, waste %, food cost %, margin vs menu price |
+| **Procurement** | Vendors, purchase orders, goods receipt, inter-branch transfers |
+| **Staff** | Roles, roster, attendance, hourly labor cost into KPIs |
+| **CRM** | Customers, loyalty points, visit/spend history, feedback tickets |
+| **Accounting** | Sales ledger on checkout, expenses, daily P&L-style totals |
+| **Multi-branch** | Branch switcher, per-branch KPIs, inventory transfers |
+| **Owner dashboard** | Revenue, AOV, food/labor cost %, margin, occupancy, prep time, repeat rate, inventory & wastage value, smart alerts |
+
+## Connected flows
+
+1. Seat a table or take a walk-in → open ticket  
+2. Send KOT → kitchen board with timers/stations  
+3. Pay bill → inventory deducted via recipes → ledger sale posted → customer loyalty updated → table freed  
+4. Low stock / expiry / slow tickets / unusual discounts → alerts on the owner dashboard  
 
 ## Stack
 
-| Layer | Tech |
-| --- | --- |
-| Framework | Next.js 15 |
-| UI | React 19 + Tailwind CSS |
-| Language | TypeScript 5.7 |
-| Data | Browser local storage (+ optional Supabase / Firebase clients) |
+- Next.js 15 + React 19 + TypeScript  
+- Tailwind CSS  
+- Local-first storage (optional Supabase / Firebase hooks)  
 
 ## Quick start
 
@@ -35,52 +43,28 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), complete setup, then sign in with your admin credentials.
+Open [http://localhost:3000](http://localhost:3000), complete setup, sign in, then explore modules from the sidebar.
 
-Cloud providers are optional. Choose **Local storage** during setup to run fully offline.
+> First setup creates a seeded **Harbor Kitchen** demo (2 branches, menu, recipes, stock, staff, customers, vendors) so every module is immediately usable.
 
-## Environment
-
-Copy `.env.example` to `.env.local` if you want Supabase or Firebase:
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-# Firebase
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-```
-
-## Project structure
+## Module map
 
 ```text
-app/
-  setup/          First-run installer
-  login/          Staff sign-in
-  (pos)/          Authenticated POS shell
-    dashboard/
-    tables/
-    orders/
-    menu/
-    kitchen/
-    settings/
-components/       UI and feature views
-lib/              Store, seed data, i18n, providers
+Overview        → Dashboard, Branches
+Front of house  → Tables, Reservations, POS/Orders, Customers
+Kitchen         → Kitchen display
+Menu & cost     → Menu, Recipes
+Supply          → Inventory, Procurement
+People & finance→ Staff, Accounting, Settings
 ```
 
 ## Scripts
 
 ```bash
-npm run dev      # development server
-npm run build    # production build
-npm run start    # serve production build
-npm run lint     # eslint
+npm run dev
+npm run build
+npm run start
+npm run lint
 ```
 
 ## License
