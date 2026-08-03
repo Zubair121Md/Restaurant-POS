@@ -57,7 +57,10 @@ This repo includes [`render.yaml`](./render.yaml).
 3. Select this repository  
 4. Apply the blueprint (`restaurant-pos` web service)
 
-Build: `npm install && npm run build`  
+Build installs **all** packages (including TypeScript/Tailwind) even when the service runtime is production:
+
+`NPM_CONFIG_PRODUCTION=false npm install --include=dev && npm run build`
+
 Start: `npm run start`  
 Health check: `/api/health`
 

@@ -15,12 +15,12 @@ services:
     region: singapore
     branch: main
     autoDeployTrigger: commit
-    buildCommand: npm install && npm run build
+    # --include=dev is required: NODE_ENV=production would otherwise skip
+    # TypeScript/Tailwind and break Next.js @/ path aliases during build.
+    buildCommand: NPM_CONFIG_PRODUCTION=false npm install --include=dev && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: NODE_VERSION
         value: "22.12.0"
       - key: NEXT_TELEMETRY_DISABLED
