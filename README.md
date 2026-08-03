@@ -20,6 +20,16 @@ On first visit open `/setup` and click **Launch Spice Garden demo**.
 
 Includes seeded open tickets, paid history, kitchen KOTs, stock (incl. low/expiry), recipes, purchase orders, vendors, staff attendance, CRM, feedback, ledger, expenses, and inter-branch transfers.
 
+## MIA Assistant (demo AI)
+
+Floating **Ask MIA** chatbot + `/assistant` page. It is a **fake/showcase copilot** from MIA Solutions Pvt. Ltd. that answers from live local Spice Garden data (sales, stock, kitchen, tables, CRM, staff). Swap the brain for a real LLM when you go to production.
+
+Try prompts like:
+- How are sales today?
+- What is low in stock?
+- Any kitchen delays?
+- Top selling items?
+
 ## Stack
 
 - Next.js 15 + React 19 + TypeScript
@@ -56,7 +66,7 @@ Free plan is configured by default; upgrade the plan in Render if you need alway
 ## Module map
 
 ```text
-Overview        → Dashboard, Branches
+Overview        → Dashboard, Branches, MIA Assistant
 Front of house  → Tables, Reservations, POS/Orders, Customers
 Kitchen         → Kitchen display
 Menu & cost     → Menu, Recipes

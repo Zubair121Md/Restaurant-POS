@@ -7,6 +7,7 @@ import clsx from "clsx";
 import {
   Bell,
   BookOpen,
+  Bot,
   Building2,
   ChefHat,
   ClipboardList,
@@ -26,6 +27,7 @@ import {
   CalendarDays
 } from "lucide-react";
 import { useApp } from "@/components/app-provider";
+import { MiaAssistant } from "@/components/mia-assistant";
 import { clearSession } from "@/lib/store";
 import { COMPANY, DEMO } from "@/lib/brand";
 
@@ -34,7 +36,8 @@ const NAV_GROUPS = [
     label: "Overview",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/branches", label: "Branches", icon: Building2 }
+      { href: "/branches", label: "Branches", icon: Building2 },
+      { href: "/assistant", label: "MIA Assistant", icon: Bot }
     ]
   },
   {
@@ -205,6 +208,13 @@ export function PosShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <Link
+              href="/assistant"
+              className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink sm:inline-flex"
+            >
+              <Bot className="h-3.5 w-3.5 text-accent" />
+              Ask MIA
+            </Link>
+            <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 rounded-full bg-accentSoft px-3 py-1.5 text-xs font-semibold text-accent"
             >
@@ -215,6 +225,7 @@ export function PosShell({ children }: { children: React.ReactNode }) {
         </header>
         <main className="px-4 py-6 lg:px-8 lg:py-8">{children}</main>
       </div>
+      <MiaAssistant />
     </div>
   );
 }
