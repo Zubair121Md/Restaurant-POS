@@ -5,34 +5,43 @@ import type {
   Transfer, Vendor, WaitlistEntry
 } from "@/lib/types";
 import {
-  createId, seedBranches, seedCategories, seedCustomers, seedIngredients, seedMenu,
-  seedRecipes, seedReservations, seedStaff, seedTables, seedVendors, seedWaitlist
+  createId, getDemoInstall, seedBranches, seedCategories, seedCustomers, seedExpenses,
+  seedFeedback, seedIngredients, seedLedger, seedMenu, seedMovements, seedOrders,
+  seedPurchaseOrders, seedRecipes, seedReservations, seedStaff, seedTables, seedTransfers,
+  seedVendors, seedWaitlist
 } from "@/lib/seed";
+import { DEMO } from "@/lib/brand";
 import { getSmartAlerts } from "@/lib/analytics";
 
 export { createId };
 
-export const STORE_KEY = "restaurant-pos-store";
-export const SESSION_KEY = "restaurant-pos-session";
+export const STORE_KEY = "restaurant-pos-store-v3-mia";
+export const SESSION_KEY = "restaurant-pos-session-v3-mia";
 export const PASSWORD_MIN_LENGTH = 6;
 
 export const defaultInstall: InstallState = {
-  language: "en", businessType: "restaurant", restaurantName: "", username: "", password: "", provider: "local"
+  language: "en",
+  businessType: "restaurant",
+  restaurantName: DEMO.restaurantName,
+  username: DEMO.username,
+  password: DEMO.password,
+  provider: "local"
 };
 
 export const defaultSettings: PosSettings = {
-  currency: "USD",
-  taxRate: 0.08,
+  currency: "INR",
+  taxRate: 0.05,
   tipEnabled: true,
-  gstEnabled: false,
-  gstRate: 0,
-  serviceChargeRate: 0,
+  gstEnabled: true,
+  gstRate: 0.05,
+  serviceChargeRate: 0.05,
   allowDiscounts: true,
-  maxDiscountPercent: 20,
+  maxDiscountPercent: 25,
   offlineMode: true
 };
 
 function buildStore(install: PosStore["install"]): PosStore {
+  const orders = seedOrders();
   return {
     version: 2,
     install,
@@ -44,21 +53,37 @@ function buildStore(install: PosStore["install"]): PosStore {
     tables: seedTables(),
     reservations: seedReservations(),
     waitlist: seedWaitlist(),
-    orders: [],
+    orders,
     ingredients: seedIngredients(),
     recipes: seedRecipes(),
-    movements: [],
-    purchaseOrders: [],
+    movements: seedMovements(),
+    purchaseOrders: seedPurchaseOrders(),
     vendors: seedVendors(),
     staff: seedStaff(),
     customers: seedCustomers(),
-    feedback: [],
-    ledger: [],
-    expenses: [],
+    feedback: seedFeedback(),
+    ledger: seedLedger(),
+    expenses: seedExpenses(),
     alerts: [],
-    transfers: [],
-    orderSeq: 0
+    transfers: seedTransfers(),
+    orderSeq: 1050
   };
+}
+
+export function loadDemoWorkspace() {
+  const install = getDemoInstall();
+  const store = buildStore(install);
+  store.alerts = getSmartAlerts(store);
+  saveStore(store);
+  setSession({
+    id: createId("session"),
+    username: DEMO.username,
+    role: "owner",
+    restaurantName: DEMO.restaurantName,
+    branchId: store.activeBranchId,
+    staffId: "staff_owner_demo"
+  });
+  return store;
 }
 
 function canUseStorage() {
@@ -106,9 +131,14 @@ export function loadStore(): PosStore | null {
   if (!canUseStorage()) return null;
   try {
     const raw = window.localStorage.getItem(STORE_KEY);
-    if (!raw) return null;
+    if (!raw || !raw.trim()) return null;
     return migrateStore(JSON.parse(raw));
   } catch {
+    try {
+      window.localStorage.removeItem(STORE_KEY);
+    } catch {
+      /* ignore */
+    }
     return null;
   }
 }
@@ -132,14 +162,26 @@ export function isInstalled() {
 export function completeInstall(form: InstallState) {
   const store = buildStore({ ...form, installedAt: new Date().toISOString() });
   const owner: StaffMember = {
-    id: createId("staff"), branchId: store.activeBranchId, name: form.username, username: form.username,
-    role: "owner", active: true, joinDate: new Date().toISOString().slice(0, 10), attendance: []
+    id: createId("staff"),
+    branchId: store.activeBranchId,
+    name: form.username,
+    username: form.username,
+    role: "owner",
+    active: true,
+    joinDate: new Date().toISOString().slice(0, 10),
+    attendance: []
   };
+  store.staff = store.staff.filter((item) => item.username !== form.username);
   store.staff.unshift(owner);
+  store.alerts = getSmartAlerts(store);
   saveStore(store);
   setSession({
-    id: createId("session"), username: form.username, role: "owner", restaurantName: form.restaurantName,
-    branchId: store.activeBranchId, staffId: owner.id
+    id: createId("session"),
+    username: form.username,
+    role: "owner",
+    restaurantName: form.restaurantName,
+    branchId: store.activeBranchId,
+    staffId: owner.id
   });
   return store;
 }
@@ -244,8 +286,9 @@ export function orderTotal(order: Pick<Order, "items" | "discount" | "taxRate" |
   return afterDiscount + afterDiscount * order.taxRate + order.tip + (order.gstAmount ?? 0) + (order.serviceCharge ?? 0);
 }
 
-export function formatMoney(amount: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);
+export function formatMoney(amount: number, currency = "INR") {
+  const locale = currency === "INR" ? "en-IN" : "en-US";
+  return new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 2 }).format(amount);
 }
 
 export function createOrder(input: {

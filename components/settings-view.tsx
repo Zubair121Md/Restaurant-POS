@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/components/app-provider";
 import { Field, PrimaryButton, SecondaryButton, TextInput } from "@/components/ui";
 import { resetInstall, updateSettings } from "@/lib/store";
+import { COMPANY, DEMO } from "@/lib/brand";
 
 export function SettingsView() {
   const router = useRouter();
@@ -66,6 +67,8 @@ export function SettingsView() {
         <div className="space-y-3">
           <h3 className="font-display text-2xl font-semibold">Business</h3>
           <Info label="Name" value={store.install.restaurantName} />
+          <Info label="Operator" value={COMPANY.legalName} />
+          <Info label="Environment" value={DEMO.notice} />
           <Info label="Type" value={store.install.businessType} />
           <Info label="Admin" value={store.install.username} />
           <Info label="Provider" value={store.install.provider} />
@@ -76,14 +79,14 @@ export function SettingsView() {
         <div className="space-y-4">
           <h3 className="font-display text-2xl font-semibold">Tax & checkout</h3>
           <Field label="Currency code">
-            <TextInput value={currency} onChange={setCurrency} placeholder="USD" />
+            <TextInput value={currency} onChange={setCurrency} placeholder="INR" />
           </Field>
           <Field label="Tax rate (%)">
-            <TextInput value={taxRate} onChange={setTaxRate} placeholder="8" />
+            <TextInput value={taxRate} onChange={setTaxRate} placeholder="5" />
           </Field>
-          <Field label="GST rate (%)"><TextInput value={gstRate} onChange={setGstRate} type="number" /></Field>
-          <Field label="Service charge (%)"><TextInput value={serviceChargeRate} onChange={setServiceChargeRate} type="number" /></Field>
-          <Field label="Maximum discount (%)"><TextInput value={maxDiscountPercent} onChange={setMaxDiscountPercent} type="number" /></Field>
+          <Field label="GST rate (%)"><TextInput value={gstRate} onChange={setGstRate} /></Field>
+          <Field label="Service charge (%)"><TextInput value={serviceChargeRate} onChange={setServiceChargeRate} /></Field>
+          <Field label="Maximum discount (%)"><TextInput value={maxDiscountPercent} onChange={setMaxDiscountPercent} /></Field>
           <Toggle label="Enable GST" checked={gstEnabled} onChange={setGstEnabled} />
           <Toggle label="Allow discounts" checked={allowDiscounts} onChange={setAllowDiscounts} />
           <Toggle label="Enable offline mode" checked={offlineMode} onChange={setOfflineMode} />

@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/components/app-provider";
 import { clearSession } from "@/lib/store";
+import { COMPANY, DEMO } from "@/lib/brand";
 
 const NAV_GROUPS = [
   {
@@ -115,9 +116,10 @@ export function PosShell({ children }: { children: React.ReactNode }) {
       >
         <div className="flex items-start justify-between gap-3 px-5 pb-4 pt-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-300">Restaurant POS</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-300">{COMPANY.productName}</p>
             <h1 className="mt-2 font-display text-xl font-semibold leading-tight">{venue}</h1>
             <p className="mt-1 text-xs text-white/50">{branch?.name ?? "Branch"}</p>
+            <p className="mt-2 text-[10px] uppercase tracking-[0.14em] text-white/35">{COMPANY.legalName}</p>
           </div>
           <button type="button" className="rounded-lg p-2 text-white/70 lg:hidden" onClick={() => setOpen(false)}>
             <X className="h-5 w-5" />
@@ -199,7 +201,7 @@ export function PosShell({ children }: { children: React.ReactNode }) {
           </button>
           <div className="hidden items-center gap-2 text-sm text-slate-500 lg:flex">
             <ClipboardList className="h-4 w-4" />
-            Live restaurant operations
+            {DEMO.notice}
           </div>
           <div className="flex items-center gap-2">
             <Link

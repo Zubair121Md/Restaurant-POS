@@ -2,8 +2,8 @@
   "name": "restaurant-pos",
   "version": "1.0.0",
   "private": true,
-  "description": "Connected restaurant OS — POS, KDS, tables, inventory, recipes, CRM, staff, accounting, and multi-branch control",
-  "author": "Zubair121Md",
+  "description": "Restaurant POS by MIA Solutions Pvt. Ltd. — connected restaurant OS demo",
+  "author": "MIA Solutions Pvt. Ltd.",
   "license": "MIT",
   "repository": {
     "type": "git",

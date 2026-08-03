@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { ChefHat } from "lucide-react";
 import { Field, PrimaryButton, TextInput } from "@/components/ui";
 import { authenticate, getSession, isInstalled, loadStore } from "@/lib/store";
+import { COMPANY, DEMO } from "@/lib/brand";
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [venue, setVenue] = useState("Restaurant POS");
+  const [venue, setVenue] = useState<string>(DEMO.restaurantName);
 
   useEffect(() => {
     if (!isInstalled()) {
@@ -49,9 +50,10 @@ export default function LoginPage() {
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-ink text-teal-200">
           <ChefHat className="h-6 w-6" />
         </span>
-        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-accent">Restaurant POS</p>
-        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">Sign in</h1>
+        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-accent">{COMPANY.legalName}</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">{COMPANY.productName}</h1>
         <p className="mt-2 text-sm text-slate-600">{venue}</p>
+        <p className="mt-1 text-xs text-slate-500">{DEMO.notice}</p>
 
         <div className="mt-8 grid gap-4">
           <Field label="Username" htmlFor="username">
@@ -67,6 +69,9 @@ export default function LoginPage() {
         <PrimaryButton type="submit" className="mt-6 w-full py-3">
           Enter POS
         </PrimaryButton>
+        <p className="mt-4 text-center text-xs text-slate-500">
+          Demo: {DEMO.username} / {DEMO.password}
+        </p>
       </form>
     </main>
   );

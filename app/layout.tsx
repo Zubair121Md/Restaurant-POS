@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { AppProvider } from "@/components/app-provider";
+import { COMPANY } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Restaurant POS",
-  description:
-    "Connected restaurant operating system — POS, kitchen display, tables, inventory, recipes, CRM, staff, accounting, and multi-branch control."
+  title: `${COMPANY.productName} | ${COMPANY.legalName}`,
+  description: `${COMPANY.tagline}. Built and operated by ${COMPANY.legalName}.`
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

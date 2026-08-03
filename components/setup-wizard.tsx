@@ -7,7 +7,8 @@ import clsx from "clsx";
 import { Field, OptionCard, PrimaryButton, SecondaryButton, StepIndicator, TextInput } from "@/components/ui";
 import { businessTypes, canFinish, copy, isStepValid, languages, providers } from "@/lib/i18n";
 import { isProviderConfigured } from "@/lib/providers";
-import { completeInstall, defaultInstall, resetInstall } from "@/lib/store";
+import { completeInstall, defaultInstall, loadDemoWorkspace, resetInstall } from "@/lib/store";
+import { COMPANY, DEMO } from "@/lib/brand";
 import type { DataProvider, InstallState, Language } from "@/lib/types";
 
 const TOTAL_STEPS = 4;
@@ -46,6 +47,15 @@ export function SetupWizard() {
       setSubmitting(false);
       setDone(true);
     }, 500);
+  }
+
+  function loadDemo() {
+    setSubmitting(true);
+    loadDemoWorkspace();
+    window.setTimeout(() => {
+      setSubmitting(false);
+      router.push("/dashboard");
+    }, 400);
   }
 
   function openDashboard() {
@@ -98,11 +108,24 @@ export function SetupWizard() {
             <ChefHat className="h-6 w-6" />
           </span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{t.brand}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{COMPANY.legalName}</p>
             <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">{t.appTitle}</h1>
             <p className="mt-1 text-sm text-slate-600">{t.appSubtitle}</p>
           </div>
         </header>
+
+        <div className="mt-6 rounded-3xl border border-accent/20 bg-accentSoft/60 p-5">
+          <p className="text-sm font-semibold text-ink">Spice Garden test workspace</p>
+          <p className="mt-1 text-sm text-slate-600">
+            Load a full demo with 3 Bengaluru branches, live tickets, kitchen KOTs, inventory, vendors, CRM, and accounting — built by {COMPANY.legalName}.
+          </p>
+          <p className="mt-2 text-xs text-slate-500">
+            Login after load: <span className="font-semibold text-ink">{DEMO.username}</span> / <span className="font-semibold text-ink">{DEMO.password}</span>
+          </p>
+          <PrimaryButton onClick={loadDemo} disabled={submitting} className="mt-4">
+            {submitting ? "Loading demo…" : "Launch Spice Garden demo"}
+          </PrimaryButton>
+        </div>
 
         <div className="mt-8 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-soft sm:p-8">
           <StepIndicator steps={TOTAL_STEPS} current={step} labels={stepLabels} />
@@ -135,6 +158,7 @@ export function SetupWizard() {
             )}
           </div>
         </div>
+        <p className="mt-6 text-center text-xs text-slate-500">© {COMPANY.copyrightYear} {COMPANY.legalName}. {DEMO.notice}</p>
       </div>
     </main>
   );

@@ -54,9 +54,9 @@ export type Copy = Record<CopyKey, string>;
 
 export const copy: Record<Language, Copy> = {
   en: {
-    brand: "Restaurant POS",
+    brand: "Restaurant POS by MIA Solutions",
     appTitle: "Set up Restaurant POS",
-    appSubtitle: "Configure your venue, admin access, and data provider in a few steps.",
+    appSubtitle: "Configure your venue with MIA Solutions Pvt. Ltd. — language, admin access, and data provider.",
     stepLanguage: "Language",
     stepBusiness: "Business",
     stepCredentials: "Credentials",
