@@ -17,7 +17,7 @@ export function OrdersListView() {
     const result = createOrder({ branchId, createdBy: session.username, waiterId: session.staffId, type });
     if (result) {
       refresh();
-      router.push(`/orders/${result.order.id}`);
+      router.push(`/orders/ticket/?id=${result.order.id}`);
     }
   }
 
@@ -64,7 +64,7 @@ export function OrdersListView() {
               visible.map((order) => (
                 <tr key={order.id} className="border-t border-slate-100 hover:bg-slate-50/80">
                   <td className="px-5 py-4">
-                    <Link href={`/orders/${order.id}`} className="font-semibold text-accent">
+                    <Link href={`/orders/ticket/?id=${order.id}`} className="font-semibold text-accent">
                       {order.orderNumber}
                     </Link>
                   </td>

@@ -2,13 +2,22 @@
 
 **Product of MIA Solutions Pvt. Ltd.**
 
-Connected restaurant operating system for billing, kitchen, floor, inventory, recipes, staff, CRM, accounting, and multi-branch control.
+Static test / demo website for a connected restaurant OS (billing, kitchen, floor, inventory, recipes, staff, CRM, accounting, multi-branch, and MIA Assistant).
 
-This repository ships as a **demo / test site** with a full Spice Garden dataset so every module is immediately reviewable.
+**No database. No backend server.** Everything runs in the browser with `localStorage` after a static HTML/JS export.
+
+## Architecture (test site)
+
+| Layer | What it is |
+| --- | --- |
+| Hosting | Static files (`out/`) on Render CDN |
+| Data | Browser `localStorage` only |
+| Auth | Demo username/password in local storage |
+| Cloud DB | Not required (Supabase/Firebase hooks are optional stubs) |
 
 ## Demo workspace
 
-On first visit open `/setup` and click **Launch Spice Garden demo**.
+On first visit open `/setup/` and click **Launch Spice Garden demo**.
 
 | Field | Value |
 | --- | --- |
@@ -18,23 +27,9 @@ On first visit open `/setup` and click **Launch Spice Garden demo**.
 | Currency | INR + GST |
 | Operator | MIA Solutions Pvt. Ltd. |
 
-Includes seeded open tickets, paid history, kitchen KOTs, stock (incl. low/expiry), recipes, purchase orders, vendors, staff attendance, CRM, feedback, ledger, expenses, and inter-branch transfers.
-
 ## MIA Assistant (demo AI)
 
-Floating **Ask MIA** chatbot + `/assistant` page. It is a **fake/showcase copilot** from MIA Solutions Pvt. Ltd. that answers from live local Spice Garden data (sales, stock, kitchen, tables, CRM, staff). Swap the brain for a real LLM when you go to production.
-
-Try prompts like:
-- How are sales today?
-- What is low in stock?
-- Any kitchen delays?
-- Top selling items?
-
-## Stack
-
-- Next.js 15 + React 19 + TypeScript
-- Tailwind CSS
-- Local-first storage (optional Supabase / Firebase)
+Floating **Ask MIA** chatbot + `/assistant/` page. Fake/showcase copilot that answers from live local Spice Garden data.
 
 ## Local development
 
@@ -42,29 +37,26 @@ Try prompts like:
 git clone https://github.com/Zubair121Md/Restaurant-POS.git
 cd Restaurant-POS
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Static production build:
 
-## Deploy on Render (Blueprint)
+```bash
+npm run build    # writes static site to ./out
+npm start        # serves ./out locally
+```
 
-This repo includes [`render.yaml`](./render.yaml).
+## Deploy on Render (static)
+
+[`render.yaml`](./render.yaml) publishes `./out` as a **static** site:
 
 1. Push to GitHub  
-2. Render Dashboard → **Blueprints** → **New Blueprint Instance**  
-3. Select this repository  
-4. Apply the blueprint (`restaurant-pos` web service)
+2. Render → **Blueprints** → New Blueprint Instance  
+3. Apply (`restaurant-pos` static service)
 
-Build installs **all** packages (including TypeScript/Tailwind) even when the service runtime is production:
-
-`NPM_CONFIG_PRODUCTION=false npm install --include=dev && npm run build`
-
-Start: `npm run start`  
-Health check: `/api/health`
-
-Free plan is configured by default; upgrade the plan in Render if you need always-on capacity.
+Build: `npm install --include=dev && npm run build`  
+Publish directory: `./out`
 
 ## Module map
 

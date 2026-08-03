@@ -30,14 +30,14 @@ export function TablesView() {
 
   function openTable(table: DiningTable) {
     if (table.activeOrderId && ["occupied", "billing"].includes(table.status)) {
-      router.push(`/orders/${table.activeOrderId}`);
+      router.push(`/orders/ticket/?id=${table.activeOrderId}`);
       return;
     }
     if (table.status !== "available" || !session) return;
     const result = createOrder({ branchId, tableId: table.id, createdBy: session.username, waiterId: session.staffId, type: "dine_in" });
     if (result) {
       refresh();
-      router.push(`/orders/${result.order.id}`);
+      router.push(`/orders/ticket/?id=${result.order.id}`);
     }
   }
 

@@ -1,46 +1,21 @@
-# Render Blueprint — Restaurant POS by MIA Solutions Pvt. Ltd.
-# Docs: https://render.com/docs/blueprint-spec
+# Render Blueprint — static test site (no database / no Node server)
+# Restaurant POS by MIA Solutions Pvt. Ltd.
+# Docs: https://render.com/docs/static-sites
 #
-# Deploy:
-# 1. Push this repo to GitHub
-# 2. In Render Dashboard → Blueprints → New Blueprint Instance
-# 3. Connect the repo (auto-detects render.yaml)
-# 4. Click Apply
+# Browser localStorage only — Spice Garden demo data, not a production DB.
 
 services:
   - type: web
     name: restaurant-pos
-    runtime: node
+    runtime: static
     plan: free
     region: singapore
     branch: main
     autoDeployTrigger: commit
-    # --include=dev is required: NODE_ENV=production would otherwise skip
-    # TypeScript/Tailwind and break Next.js @/ path aliases during build.
     buildCommand: NPM_CONFIG_PRODUCTION=false npm install --include=dev && npm run build
-    startCommand: npm run start
-    healthCheckPath: /api/health
+    staticPublishPath: ./out
     envVars:
       - key: NODE_VERSION
         value: "22.12.0"
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
-      - key: PORT
-        value: "10000"
-      # Optional cloud providers — leave blank for local/demo mode
-      - key: NEXT_PUBLIC_SUPABASE_URL
-        sync: false
-      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_API_KEY
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-        sync: false
-      - key: NEXT_PUBLIC_FIREBASE_APP_ID
-        sync: false
