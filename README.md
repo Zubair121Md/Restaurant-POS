@@ -4,16 +4,16 @@
 
 Static test / demo website for a connected restaurant OS (billing, kitchen, floor, inventory, recipes, staff, CRM, accounting, multi-branch, and MIA Assistant).
 
-**No database. No backend server.** Everything runs in the browser with `localStorage` after a static HTML/JS export.
+**No database. No always-on Node server.** Built as static HTML/JS (`out/`) and hosted on Render’s CDN — so it stays fast and does **not** spin down like a free Web Service.
 
 ## Architecture (test site)
 
 | Layer | What it is |
 | --- | --- |
-| Hosting | Static files (`out/`) on Render CDN |
+| Hosting | Render **Static Site** (CDN) |
+| Build output | `./out` from `next export` |
 | Data | Browser `localStorage` only |
 | Auth | Demo username/password in local storage |
-| Cloud DB | Not required (Supabase/Firebase hooks are optional stubs) |
 
 ## Demo workspace
 
@@ -27,40 +27,37 @@ On first visit open `/setup/` and click **Launch Spice Garden demo**.
 | Currency | INR + GST |
 | Operator | MIA Solutions Pvt. Ltd. |
 
-## MIA Assistant (demo AI)
-
-Floating **Ask MIA** chatbot + `/assistant/` page. Fake/showcase copilot that answers from live local Spice Garden data.
-
 ## Local development
 
 ```bash
 git clone https://github.com/Zubair121Md/Restaurant-POS.git
 cd Restaurant-POS
 npm install
-npm run dev
+npm run dev          # local Next dev server
+npm run build        # writes static site to ./out
+npm start            # optional local preview of ./out
 ```
 
-Static production build:
+## Deploy on Render as a Static Site
 
-```bash
-npm run build    # writes static site to ./out
-npm start        # serves ./out locally
-```
+[`render.yaml`](./render.yaml) defines service **`restaurant-pos-site`** with `runtime: static`.
 
-## Deploy on Render
+### If you currently have a Web Service (spinning down)
 
-[`render.yaml`](./render.yaml) builds the static export to `./out`, then serves those files (still **no database**).
+Render **cannot** change `runtime` on an existing service. Do this once:
 
-Build: `npm install --include=dev && npm run build`  
-Start: `serve out` on Render’s `$PORT` (not a hardcoded 3000)
+1. Render Dashboard → open the old **Web Service** (`restaurant-pos`) → **Settings** → **Delete**
+2. Dashboard → **Blueprints** → sync / apply this repo  
+   **or** **New → Static Site** and set:
+   - Build Command: `NPM_CONFIG_PRODUCTION=false npm install --include=dev && npm run build`
+   - Publish Directory: `out`
+3. Use the new static URL (always-on CDN, no cold starts)
 
-If an older service was created as Next.js/`next start`, sync the Blueprint or set **Start Command** to:
+### Fresh Blueprint apply
 
-```bash
-npx --yes serve@14 out -l tcp://0.0.0.0:$PORT
-```
-
-Optional pure CDN path: Dashboard → **New → Static Site**, build same as above, **Publish Directory** `out`.
+1. Push to GitHub  
+2. Render → **Blueprints** → New / Sync  
+3. Deploy `restaurant-pos-site`
 
 ## Module map
 

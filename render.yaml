@@ -1,23 +1,29 @@
-# Render Blueprint — static test site (no database)
+# Render Blueprint — TRUE static site (CDN, no spin-down, no Node server)
 # Restaurant POS by MIA Solutions Pvt. Ltd.
 #
-# Serves the Next.js static export from ./out (browser localStorage only).
-# Uses a lightweight static file server bound to Render's $PORT.
+# IMPORTANT: runtime cannot be changed on an existing service.
+# If you still have a Node "Web Service" named restaurant-pos:
+#   1. Delete that Web Service in the Render dashboard
+#   2. Sync / re-apply this Blueprint (or New → Static Site)
+#
+# Data = browser localStorage only. No database.
 
 services:
   - type: web
-    name: restaurant-pos
-    runtime: node
+    name: restaurant-pos-site
+    runtime: static
     plan: free
     region: singapore
     branch: main
     autoDeployTrigger: commit
     buildCommand: NPM_CONFIG_PRODUCTION=false npm install --include=dev && npm run build
-    startCommand: npx --yes serve@14 out -l tcp://0.0.0.0:$PORT
+    staticPublishPath: ./out
+    headers:
+      - path: /_next/static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
     envVars:
       - key: NODE_VERSION
         value: "22.12.0"
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
-      - key: NODE_ENV
-        value: production
