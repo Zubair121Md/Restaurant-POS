@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ChefHat, ClipboardList, Package, Table2 } from "lucide-react";
+import { ArrowRight, ChefHat, ClipboardList, Package, RefreshCw, Table2 } from "lucide-react";
 import { useBranchData } from "@/components/app-provider";
-import { StatCard } from "@/components/ui";
+import { PrimaryButton, StatCard } from "@/components/ui";
 import { computeKpis, getSmartAlerts, leastProfitableItems, peakHourBuckets, topSellingItems } from "@/lib/analytics";
-import { formatMoney } from "@/lib/store";
+import { DEMO } from "@/lib/brand";
+import { formatMoney, isDemoInstall, refreshDemoDay } from "@/lib/store";
 
 export function DashboardView() {
-  const { store, branch, branchId } = useBranchData();
+  const { store, branch, branchId, refresh } = useBranchData();
   if (!store) return <p className="text-slate-500">Loading dashboard…</p>;
 
   const kpi = computeKpis(store, branchId);
@@ -17,6 +18,7 @@ export function DashboardView() {
   const sellers = topSellingItems(store, branchId);
   const lowMargin = leastProfitableItems(store, branchId);
   const peaks = peakHourBuckets(store, branchId).filter((bucket) => bucket.orders > 0).sort((a, b) => b.orders - a.orders).slice(0, 5);
+  const demo = isDemoInstall(store.install);
   const cards = [
     ["Revenue today", money(kpi.revenueToday), `${kpi.ordersToday} paid orders`],
     ["Orders today", String(kpi.ordersToday), `${kpi.openTickets} open tickets`],
@@ -32,13 +34,33 @@ export function DashboardView() {
     ["Wastage value", money(kpi.wastageValue), "Recorded today"]
   ];
 
+  function reloadDemo() {
+    refreshDemoDay();
+    refresh();
+  }
+
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Owner overview</p>
-        <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight text-ink">{branch?.name ?? "Dashboard"}</h2>
-        <p className="mt-2 text-slate-600">Today&apos;s operating pulse across sales, service, kitchen, and stock.</p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent">Owner overview</p>
+          <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight text-ink">{branch?.name ?? "Dashboard"}</h2>
+          <p className="mt-2 text-slate-600">Today&apos;s operating pulse across sales, service, kitchen, and stock.</p>
+        </div>
+        {demo ? (
+          <PrimaryButton onClick={reloadDemo} className="shrink-0">
+            <RefreshCw className="h-4 w-4" />
+            Refresh today&apos;s demo data
+          </PrimaryButton>
+        ) : null}
       </header>
+
+      {demo ? (
+        <p className="rounded-2xl border border-accent/20 bg-accentSoft/50 px-4 py-3 text-sm text-slate-700">
+          {DEMO.notice} Every branch ships with paid tickets, labor, prep times, and wastage for today. Use{" "}
+          <strong>Refresh today&apos;s demo data</strong> if figures look empty after switching days.
+        </p>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([label, value, hint]) => <StatCard key={label} label={label} value={value} hint={hint} />)}
@@ -85,14 +107,35 @@ export function DashboardView() {
 }
 
 function Insight({ title, empty, children }: { title: string; empty: string; children: React.ReactNode }) {
-  const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
-  return <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft"><h3 className="font-display text-xl font-semibold">{title}</h3><div className="mt-4 space-y-3">{hasChildren ? children : <p className="text-sm text-slate-500">{empty}</p>}</div></section>;
+  const items = Array.isArray(children) ? children : [children];
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft">
+      <h3 className="font-display text-2xl font-semibold text-ink">{title}</h3>
+      <div className="mt-4 space-y-3">
+        {items.filter(Boolean).length ? children : <p className="text-sm text-slate-500">{empty}</p>}
+      </div>
+    </section>
+  );
 }
 
 function MetricRow({ label, detail, value }: { label: string; detail: string; value: string }) {
-  return <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3"><div><p className="font-semibold">{label}</p><p className="text-xs text-slate-500">{detail}</p></div><p className="text-sm font-bold text-accent">{value}</p></div>;
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+      <div>
+        <p className="font-semibold text-ink">{label}</p>
+        <p className="text-sm text-slate-500">{detail}</p>
+      </div>
+      <p className="text-sm font-semibold">{value}</p>
+    </div>
+  );
 }
 
 function QuickLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
-  return <Link href={href} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 font-semibold shadow-soft transition hover:border-accent"><span className="flex items-center gap-3">{icon}{label}</span><ArrowRight className="h-4 w-4 text-accent" /></Link>;
+  return (
+    <Link href={href} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold transition hover:bg-slate-50">
+      {icon}
+      {label}
+      <ArrowRight className="ml-auto h-4 w-4 text-slate-400" />
+    </Link>
+  );
 }

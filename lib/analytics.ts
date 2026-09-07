@@ -5,7 +5,14 @@ export function getTodayBounds(now = new Date()) {
   start.setHours(0, 0, 0, 0);
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
-  return { start: start.toISOString(), end: end.toISOString() };
+  return { start: start.toISOString(), end: end.toISOString(), localDate: localDateStamp(start) };
+}
+
+function localDateStamp(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function filterOrdersForBranch(store: PosStore, branchId?: string) {
@@ -31,7 +38,7 @@ function orderRevenue(order: Order) {
 
 export function computeKpis(store: PosStore, branchId?: string) {
   const selectedBranch = branchId ?? store.activeBranchId;
-  const { start, end } = getTodayBounds();
+  const { start, end, localDate } = getTodayBounds();
   const orders = filterOrdersForBranch(store, selectedBranch);
   const todayOrders = orders.filter((order) => order.createdAt >= start && order.createdAt < end);
   const paidToday = todayOrders.filter((order) => order.status === "paid");
@@ -43,7 +50,7 @@ export function computeKpis(store: PosStore, branchId?: string) {
   const laborCost = store.staff
     .filter((staff) => staff.branchId === selectedBranch)
     .reduce((sum, staff) => sum + staff.attendance
-      .filter((record) => record.date >= start.slice(0, 10) && record.date < end.slice(0, 10) && record.checkIn)
+      .filter((record) => record.date === localDate && Boolean(record.checkIn) && record.status !== "absent" && record.status !== "leave")
       .reduce((staffSum, record) => {
         const checkIn = new Date(record.checkIn!).getTime();
         const checkOut = record.checkOut ? new Date(record.checkOut).getTime() : Date.now();

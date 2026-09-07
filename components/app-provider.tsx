@@ -3,11 +3,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   getSession,
+  isDemoInstall,
   isInstalled,
   loadStore,
   refreshAlerts,
+  refreshDemoDay,
   setActiveBranch as storeSetActiveBranch
 } from "@/lib/store";
+import { getTodayBounds } from "@/lib/analytics";
 import type { PosStore, SessionUser } from "@/lib/types";
 
 type AppContextValue = {
@@ -39,6 +42,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const existing = loadStore();
+    if (existing && isDemoInstall(existing.install)) {
+      const { start } = getTodayBounds();
+      const hasTodayPaid = existing.orders.some(
+        (order) => order.status === "paid" && order.createdAt >= start
+      );
+      if (!hasTodayPaid) refreshDemoDay();
+    }
     refresh();
     setReady(true);
     const onStorage = () => refresh();

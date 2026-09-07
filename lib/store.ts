@@ -15,8 +15,8 @@ import { getSmartAlerts } from "@/lib/analytics";
 
 export { createId };
 
-export const STORE_KEY = "restaurant-pos-store-v3-mia";
-export const SESSION_KEY = "restaurant-pos-session-v3-mia";
+export const STORE_KEY = "restaurant-pos-store-v5-mia";
+export const SESSION_KEY = "restaurant-pos-session-v5-mia";
 export const PASSWORD_MIN_LENGTH = 6;
 
 export const defaultInstall: InstallState = {
@@ -70,9 +70,12 @@ function buildStore(install: PosStore["install"]): PosStore {
   };
 }
 
-export function loadDemoWorkspace() {
+export function loadDemoWorkspace(preferredBranchId?: string) {
   const install = getDemoInstall();
   const store = buildStore(install);
+  if (preferredBranchId && store.branches.some((branch) => branch.id === preferredBranchId)) {
+    store.activeBranchId = preferredBranchId;
+  }
   store.alerts = getSmartAlerts(store);
   saveStore(store);
   setSession({
@@ -84,6 +87,17 @@ export function loadDemoWorkspace() {
     staffId: "staff_owner_demo"
   });
   return store;
+}
+
+export function isDemoInstall(install?: PosStore["install"] | null) {
+  return Boolean(install && (install.restaurantName === DEMO.restaurantName || install.username === DEMO.username));
+}
+
+/** Rebuild today's Spice Garden numbers so KPIs never go stale on the test site. */
+export function refreshDemoDay() {
+  const current = loadStore();
+  if (!current || !isDemoInstall(current.install)) return current;
+  return loadDemoWorkspace(current.activeBranchId);
 }
 
 function canUseStorage() {

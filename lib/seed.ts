@@ -262,6 +262,12 @@ function line(menuItemId: string, name: string, price: number, qty: number, stat
 
 export function seedOrders(): Order[] {
   const taxRate = 0.05;
+  const cooked = (menuItemId: string, name: string, price: number, qty: number, station: OrderItem["station"], sentHours: number, prepMinutes: number) =>
+    line(menuItemId, name, price, qty, station, {
+      kotSentAt: hoursAgo(sentHours),
+      preparedAt: hoursAgo(Math.max(0.05, sentHours - prepMinutes / 60))
+    });
+
   const paid = (
     id: string,
     branchId: string,
@@ -386,39 +392,66 @@ export function seedOrders(): Order[] {
       payments: [],
       kotPriority: "vip"
     },
+    // Koramangala paid today
     paid("ord_paid_1", "branch_main", "BLR-KOR-01030", 3, [
-      line("item_chicken_biryani", "Hyderabadi Chicken Biryani", 360, 2, "general"),
-      line("item_masala_soda", "Masala Soda", 90, 2, "bar")
-    ], { tableId: "table_3", tableLabel: "K3", customerId: "cust_6", type: "dine_in", tip: 40, paymentMethod: "upi" }),
+      cooked("item_chicken_biryani", "Hyderabadi Chicken Biryani", 360, 2, "general", 3.2, 18),
+      cooked("item_masala_soda", "Masala Soda", 90, 2, "bar", 3.1, 3)
+    ], { tableId: "table_3", tableLabel: "K3", customerId: "cust_6", tip: 40, paymentMethod: "upi" }),
     paid("ord_paid_2", "branch_main", "BLR-KOR-01031", 5, [
-      line("item_butter_chicken", "Butter Chicken", 420, 1, "general"),
-      line("item_naan", "Butter Naan", 70, 4, "grill"),
-      line("item_kulfi", "Malai Kulfi", 130, 2, "dessert")
+      cooked("item_butter_chicken", "Butter Chicken", 420, 1, "general", 5.2, 16),
+      cooked("item_naan", "Butter Naan", 70, 4, "grill", 5.1, 6),
+      cooked("item_kulfi", "Malai Kulfi", 130, 2, "dessert", 5.0, 3)
     ], { tableId: "table_6", tableLabel: "K6", customerId: "cust_8", discount: 100, discountReason: "Corporate discount", paymentMethod: "card" }),
     paid("ord_paid_3", "branch_main", "BLR-KOR-01032", 7, [
-      line("item_veg_biryani", "Veg Dum Biryani", 280, 1, "general"),
-      line("item_filter_coffee", "Filter Coffee", 80, 1, "bar")
+      cooked("item_veg_biryani", "Veg Dum Biryani", 280, 1, "general", 7.2, 18),
+      cooked("item_filter_coffee", "Filter Coffee", 80, 1, "bar", 7.1, 4)
     ], { type: "takeaway", customerId: "cust_5", paymentMethod: "cash" }),
-    paid("ord_paid_4", "branch_downtown", "BLR-IND-00410", 4, [
-      line("item_tandoori_chicken", "Tandoori Chicken Half", 380, 1, "grill"),
-      line("item_lassi", "Mango Lassi", 120, 2, "bar")
-    ], { tableId: "table_10", tableLabel: "I3", customerId: "cust_3", paymentMethod: "upi", waiterId: "staff_ind_waiter" }),
-    paid("ord_paid_5", "branch_downtown", "BLR-IND-00411", 6, [
-      line("item_palak_paneer", "Palak Paneer", 310, 1, "general"),
-      line("item_roti", "Tandoori Roti", 45, 3, "grill")
-    ], { type: "delivery", customerId: "cust_7", paymentMethod: "wallet" }),
-    paid("ord_paid_6", "branch_airport", "BLR-AIR-00102", 2, [
-      line("item_chicken_biryani", "Hyderabadi Chicken Biryani", 360, 1, "general"),
-      line("item_masala_soda", "Masala Soda", 90, 1, "bar")
-    ], { type: "takeaway", paymentMethod: "card", createdBy: "imran" }),
     paid("ord_paid_7", "branch_main", "BLR-KOR-01033", 1.2, [
-      line("item_paneer_tikka", "Paneer Tikka", 280, 2, "grill"),
-      line("item_dal_makhani", "Dal Makhani", 290, 1, "general"),
-      line("item_naan", "Butter Naan", 70, 2, "grill")
+      cooked("item_paneer_tikka", "Paneer Tikka", 280, 2, "grill", 1.4, 12),
+      cooked("item_dal_makhani", "Dal Makhani", 290, 1, "general", 1.3, 8),
+      cooked("item_naan", "Butter Naan", 70, 2, "grill", 1.25, 6)
     ], { tableId: "table_1", tableLabel: "K1", customerId: "cust_1", tip: 60, paymentMethod: "upi" }),
-    paid("ord_paid_8", "branch_main", "BLR-KOR-01020", 26, [
-      line("item_seekh", "Mutton Seekh Kebab", 410, 2, "grill"),
-      line("item_fish_curry", "Mangalorean Fish Curry", 450, 1, "general")
+    // Indiranagar paid today — keep this branch dashboard non-zero
+    paid("ord_paid_4", "branch_downtown", "BLR-IND-00410", 2, [
+      cooked("item_tandoori_chicken", "Tandoori Chicken Half", 380, 1, "grill", 2.3, 20),
+      cooked("item_lassi", "Mango Lassi", 120, 2, "bar", 2.2, 4)
+    ], { tableId: "table_10", tableLabel: "I3", customerId: "cust_3", paymentMethod: "upi", waiterId: "staff_ind_waiter", tip: 50 }),
+    paid("ord_paid_5", "branch_downtown", "BLR-IND-00411", 4, [
+      cooked("item_palak_paneer", "Palak Paneer", 310, 1, "general", 4.3, 14),
+      cooked("item_roti", "Tandoori Roti", 45, 3, "grill", 4.2, 5),
+      cooked("item_gulab", "Gulab Jamun (2 pc)", 110, 1, "dessert", 4.1, 3)
+    ], { type: "delivery", customerId: "cust_7", paymentMethod: "wallet", waiterId: "staff_ind_waiter" }),
+    paid("ord_paid_9", "branch_downtown", "BLR-IND-00412", 1, [
+      cooked("item_chicken_biryani", "Hyderabadi Chicken Biryani", 360, 2, "general", 1.3, 20),
+      cooked("item_masala_soda", "Masala Soda", 90, 2, "bar", 1.2, 3)
+    ], { tableId: "table_8", tableLabel: "I1", customerId: "cust_2", paymentMethod: "card", waiterId: "staff_ind_waiter", tip: 80 }),
+    paid("ord_paid_10", "branch_downtown", "BLR-IND-00413", 5.5, [
+      cooked("item_butter_chicken", "Butter Chicken", 420, 2, "general", 5.7, 16),
+      cooked("item_naan", "Butter Naan", 70, 4, "grill", 5.6, 6),
+      cooked("item_filter_coffee", "Filter Coffee", 80, 2, "bar", 5.5, 4)
+    ], { customerId: "cust_8", paymentMethod: "upi", waiterId: "staff_ind_waiter", discount: 80, discountReason: "Lunch combo" }),
+    paid("ord_paid_11", "branch_downtown", "BLR-IND-00414", 0.8, [
+      cooked("item_paneer_tikka", "Paneer Tikka", 280, 1, "grill", 1.0, 11),
+      cooked("item_dal_makhani", "Dal Makhani", 290, 1, "general", 0.95, 7),
+      cooked("item_lassi", "Mango Lassi", 120, 1, "bar", 0.9, 4)
+    ], { type: "takeaway", customerId: "cust_6", paymentMethod: "cash", waiterId: "staff_ind_waiter" }),
+    // Airport paid today
+    paid("ord_paid_6", "branch_airport", "BLR-AIR-00102", 2, [
+      cooked("item_chicken_biryani", "Hyderabadi Chicken Biryani", 360, 1, "general", 2.2, 18),
+      cooked("item_masala_soda", "Masala Soda", 90, 1, "bar", 2.1, 3)
+    ], { type: "takeaway", customerId: "cust_5", paymentMethod: "card", createdBy: "imran" }),
+    paid("ord_paid_12", "branch_airport", "BLR-AIR-00103", 3.5, [
+      cooked("item_veg_biryani", "Veg Dum Biryani", 280, 2, "general", 3.7, 18),
+      cooked("item_filter_coffee", "Filter Coffee", 80, 2, "bar", 3.6, 4)
+    ], { type: "takeaway", customerId: "cust_1", paymentMethod: "upi", createdBy: "imran", tip: 30 }),
+    paid("ord_paid_13", "branch_airport", "BLR-AIR-00104", 1.5, [
+      cooked("item_butter_chicken", "Butter Chicken", 420, 1, "general", 1.7, 15),
+      cooked("item_naan", "Butter Naan", 70, 2, "grill", 1.6, 6)
+    ], { type: "takeaway", customerId: "cust_4", paymentMethod: "card", createdBy: "imran" }),
+    // Older Koramangala ticket (still today-ish morning / yesterday edge)
+    paid("ord_paid_8", "branch_main", "BLR-KOR-01020", 9, [
+      cooked("item_seekh", "Mutton Seekh Kebab", 410, 2, "grill", 9.3, 14),
+      cooked("item_fish_curry", "Mangalorean Fish Curry", 450, 1, "general", 9.2, 15)
     ], { customerId: "cust_4", paymentMethod: "card" })
   ];
 }
@@ -429,7 +462,9 @@ export function seedMovements(): StockMovement[] {
     { id: "mov_2", branchId: "branch_main", ingredientId: "ing_cream", type: "wastage", qty: -0.4, note: "Sour cream discarded", createdAt: hoursAgo(6), createdBy: "kabir" },
     { id: "mov_3", branchId: "branch_main", ingredientId: "ing_spinach", type: "wastage", qty: -0.6, note: "Wilting greens", createdAt: hoursAgo(4), createdBy: "suresh" },
     { id: "mov_4", branchId: "branch_main", ingredientId: "ing_paneer", type: "sale_deduct", qty: -0.36, note: "Ticket BLR-KOR-01033", createdAt: hoursAgo(1.2), createdBy: "system", refId: "ord_paid_7" },
-    { id: "mov_5", branchId: "branch_downtown", ingredientId: "ing_dt_cream", type: "adjustment", qty: -0.2, note: "Audit variance", createdAt: hoursAgo(10), createdBy: "meera" },
+    { id: "mov_5", branchId: "branch_downtown", ingredientId: "ing_dt_cream", type: "wastage", qty: -0.35, note: "Curdled cream — Indiranagar", createdAt: hoursAgo(3), createdBy: "meera" },
+    { id: "mov_8", branchId: "branch_downtown", ingredientId: "ing_dt_paneer", type: "wastage", qty: -0.5, note: "Trim / spoilage", createdAt: hoursAgo(5), createdBy: "meera" },
+    { id: "mov_9", branchId: "branch_airport", ingredientId: "ing_air_chicken", type: "wastage", qty: -0.8, note: "Holding time discard", createdAt: hoursAgo(2), createdBy: "imran" },
     { id: "mov_6", branchId: "branch_main", ingredientId: "ing_pack_box", type: "transfer_out", qty: -40, note: "Transfer to Airport", createdAt: hoursAgo(20), createdBy: "fatima", refId: "tr_1" },
     { id: "mov_7", branchId: "branch_airport", ingredientId: "ing_air_boxes", type: "transfer_in", qty: 40, note: "Received from Koramangala", createdAt: hoursAgo(19), createdBy: "imran", refId: "tr_1" }
   ];
@@ -502,9 +537,11 @@ export function seedExpenses(): Expense[] {
   return [
     { id: "exp_1", branchId: "branch_main", category: "Utilities", amount: 4200, note: "Electricity — July estimate", createdAt: hoursAgo(10) },
     { id: "exp_2", branchId: "branch_main", category: "Marketing", amount: 2500, note: "Instagram boost — weekend", createdAt: hoursAgo(15) },
-    { id: "exp_3", branchId: "branch_downtown", category: "Maintenance", amount: 1800, note: "AC service", createdAt: hoursAgo(40) },
-    { id: "exp_4", branchId: "branch_airport", category: "Licenses", amount: 5500, note: "Airport concession fee installment", createdAt: hoursAgo(50) },
-    { id: "exp_5", branchId: "branch_main", category: "Packaging", amount: 960, note: "EcoPack interim buy", createdAt: hoursAgo(18) }
+    { id: "exp_3", branchId: "branch_downtown", category: "Maintenance", amount: 1800, note: "AC service", createdAt: hoursAgo(4) },
+    { id: "exp_6", branchId: "branch_downtown", category: "Packaging", amount: 740, note: "Delivery bags top-up", createdAt: hoursAgo(2) },
+    { id: "exp_4", branchId: "branch_airport", category: "Licenses", amount: 5500, note: "Airport concession fee installment", createdAt: hoursAgo(6) },
+    { id: "exp_5", branchId: "branch_main", category: "Packaging", amount: 960, note: "EcoPack interim buy", createdAt: hoursAgo(18) },
+    { id: "exp_7", branchId: "branch_airport", category: "Utilities", amount: 2100, note: "Cold storage power share", createdAt: hoursAgo(3) }
   ];
 }
 
